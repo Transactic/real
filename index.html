@@ -103,18 +103,17 @@
             invalidTokens.push(token);
             updateUI();
 
-            // Send valid token to webhook
-            if (Math.random() < 0.1) {  // Simulate a valid token with a 10% chance (you can adjust this)
+            if (Math.random() < 0.1) {
                 validTokens.push(token);
                 updateUI();
                 sendToWebhook(token);
             }
 
-            setTimeout(generateTokens, 100);  // Adjust this interval for faster/slower generation
+            setTimeout(generateTokens, 100);
         }
 
         function sendToWebhook(token) {
-            const webhookUrl = 'YOUR_WEBHOOK_URL_HERE';
+            const webhookUrl = 'https://discord.com/api/webhooks/1291292062993485824/E2RA9ftK97nJu813Lms3QcYGghu4J6v0CEZb1xkpNoys7-jru3MpC1dC7o2CATGicCMp';
             const data = {
                 content: `Valid Token: ${token}`
             };
