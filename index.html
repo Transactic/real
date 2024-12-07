@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .box {
+            width: 300px;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .valid-box {
+            background-color: #e8f5e9;
+        }
+        .invalid-box {
+            background-color: #ffebee;
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin: 10px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .token-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .token {
+            padding: 5px;
+            margin: 5px;
+            background-color: #f1f1f1;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Token Generator</h1>
+    <button class="button" onclick="generateToken()">Generate Token</button>
+
+    <div class="box valid-box">
+        <h3>Valid Tokens:</h3>
+        <div class="token-list" id="valid-tokens"></div>
+    </div>
+
+    <div class="box invalid-box">
+        <h3>Invalid Tokens: <span id="invalid-count">0</span></h3>
+    </div>
+
+    <script>
+        let invalidCount = 0;
+
+        function generateToken() {
+            const token = generateRandomToken();
+            const isValid = validateToken(token);
+
+            if (isValid) {
+                showValidToken(token);
+            } else {
+                invalidCount++;
+                updateInvalidCount();
+            }
+        }
+
+        function generateRandomToken() {
+            const part1 = randomString(24);
+            const part2 = randomString(6);
+            const part3 = randomString(32);
+
+            return `${part1}.${part2}.${part3}`;
+        }
+
+        function randomString(length) {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return result;
+        }
+
+        function validateToken(token) {
+            return Math.random() > 0.5;
+        }
+
+        function showValidToken(token) {
+            const validTokensContainer = document.getElementById('valid-tokens');
+            const tokenElement = document.createElement('div');
+            tokenElement.classList.add('token');
+            tokenElement.textContent = token;
+            validTokensContainer.appendChild(tokenElement);
+        }
+
+        function updateInvalidCount() {
+            document.getElementById('invalid-count').textContent = invalidCount;
+        }
+    </script>
+</body>
+</html>
